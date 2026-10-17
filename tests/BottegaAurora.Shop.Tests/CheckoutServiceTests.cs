@@ -38,4 +38,18 @@ public class CheckoutServiceTests
         Assert.Equal(0m, result.Discount);
         Assert.Equal(14.50m, result.Total);
     }
+
+    // Regression for issue #1: in 2.4.0 a cart without a promo code threw
+    // NullReferenceException and checkout returned 500.
+    [Fact]
+    public void Complete_WithoutPromo_ChargesFullPriceAndReportsNoCode()
+    {
+        var cart = new Cart([new CartLine(_catalog.Find("torrone")!, 1)], null);
+
+        var result = _checkout.Complete(cart);
+
+        Assert.Equal(0m, result.Discount);
+        Assert.Equal(14.50m, result.Total);
+        Assert.Null(result.PromoCode);
+    }
 }
