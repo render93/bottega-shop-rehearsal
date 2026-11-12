@@ -38,4 +38,16 @@ public class CheckoutServiceTests
         Assert.Equal(0m, result.Discount);
         Assert.Equal(14.50m, result.Total);
     }
+
+    [Fact]
+    public void Complete_WithoutPromo_ChargesFullPrice()
+    {
+        var cart = new Cart([new CartLine(_catalog.Find("pandoro")!, 1)], null);
+
+        var result = _checkout.Complete(cart);
+
+        Assert.Equal(24m, result.Total);
+        Assert.Equal(0m, result.Discount);
+        Assert.Null(result.PromoCode);
+    }
 }

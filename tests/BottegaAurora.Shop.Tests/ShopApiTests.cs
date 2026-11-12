@@ -42,6 +42,26 @@ public class ShopApiTests : IDisposable
         Assert.Equal("BLACKFRIDAY", order.Promo);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Checkout_WithoutPromo_ReturnsOrder(bool includeNullPromo)
+    {
+        object request = includeNullPromo
+            ? new { items = new[] { new { sku = "pandoro", qty = 1 } }, promo = (string?)null }
+            : new { items = new[] { new { sku = "pandoro", qty = 1 } } };
+
+        var response = await CheckoutAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        var order = await response.Content.ReadFromJsonAsync<CheckoutResponse>();
+        Assert.Equal(1, order!.OrderId);
+        Assert.Equal(24m, order.Total);
+        Assert.Equal(0m, order.Discount);
+        Assert.Null(order.Promo);
+        Assert.Equal(CheckoutStatus.Completed, Assert.Single((await _client.GetFromJsonAsync<List<OrderEntry>>("/api/orders/feed"))!).Status);
+    }
+
     [Fact]
     public async Task Checkout_UnknownSku_Returns400AndRecordsNothing()
     {
