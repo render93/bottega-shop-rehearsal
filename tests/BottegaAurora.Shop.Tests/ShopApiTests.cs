@@ -43,6 +43,18 @@ public class ShopApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Checkout_WithoutPromo_ReturnsOrder()
+    {
+        var response = await CheckoutAsync(new { items = new[] { new { sku = "pandoro", qty = 1 } } });
+
+        response.EnsureSuccessStatusCode();
+        var order = await response.Content.ReadFromJsonAsync<CheckoutResponse>();
+        Assert.Equal(24m, order!.Total);
+        Assert.Equal(0m, order.Discount);
+        Assert.Null(order.Promo);
+    }
+
+    [Fact]
     public async Task Checkout_UnknownSku_Returns400AndRecordsNothing()
     {
         var response = await CheckoutAsync(new { items = new[] { new { sku = "colomba", qty = 1 } }, promo = "AURORA10" });

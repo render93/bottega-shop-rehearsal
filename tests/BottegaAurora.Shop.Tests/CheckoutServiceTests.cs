@@ -31,6 +31,18 @@ public class CheckoutServiceTests
     }
 
     [Fact]
+    public void Complete_WithoutPromo_ChargesFullPrice()
+    {
+        var cart = new Cart([new CartLine(_catalog.Find("torrone")!, 1)], null);
+
+        var result = _checkout.Complete(cart);
+
+        Assert.Equal(0m, result.Discount);
+        Assert.Equal(14.50m, result.Total);
+        Assert.Null(result.PromoCode);
+    }
+
+    [Fact]
     public void Complete_WithUnknownCode_ChargesFullPrice()
     {
         var result = _checkout.Complete(CartOf("torrone", 1, "SCONTO50"));
